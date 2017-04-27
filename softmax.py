@@ -90,3 +90,75 @@ Trainable params: 7,850
 Non-trainable params: 0
 _________________________________________________________________
 '''
+
+from keras.callbacks import Callback, TensorBoard
+import tensorflow as tf
+
+
+#构建一个记录的loss的回调函数
+
+#类的方法与普通的函数只有一个特别的区别——它们必须有一个额外的第一个参数名称, 按照惯例它的名称是 self。
+#self 代表的是类的实例，代表当前对象的地址
+#一个类变量，它的值将在这个类的所有实例之间共享。
+#class SubClassName (ParentClass1[, ParentClass2, ...]):
+#继承语法 class 派生类名（基类名）：
+
+#[]:list列表,数组  ():元组,不可以修改   {}:dictionary字典,key:value
+class LossHistory(Callback):
+    def on_train_begin(self, logs={}):
+        self.losses = [] #清空,self.数据成员：类变量或者实例变量用于处理类及其实例对象的相关的数据
+
+    def on_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss')) #把损失函数值加入到self.losses
+
+# 构建一个自定义的TensorBoard类，专门用来记录batch中的数据变化
+class BatchTensorBoard(TensorBoard):
+    def __init__(self,log_dir='./logs',
+                 histogram_freq=0,
+                 write_graph=True,
+                 write_images=False):
+        #super(B, self)首先找到B的父类（就是类A），然后把类B的对象self转换为类A的对象
+        super(BatchTensorBoard, self).__init__()
+        self.log_dir = log_dir
+        self.histogram_freq = histogram_freq
+        self.merged = None
+        self.write_graph = write_graph
+        self.write_images = write_images
+        self.batch = 0
+        self.batch_queue = set()
+    
+    def on_epoch_end(self, epoch, logs=None):
+        pass #pass 不做任何事情，一般用做占位语句。
+    
+    def on_batch_end(self,batch,logs=None):
+        logs = logs or {}
+        
+        self.batch = self.batch + 1
+        
+        for name, value in logs.items():
+            if name in ['batch', 'size']:
+                continue
+            summary = tf.Summary()
+            summary_value = summary.value.add()
+            summary_value.simple_value = float(value)
+            summary_value.tag = "batch_" + name
+            if (name,self.batch) in self.batch_queue:
+                continue
+            self.writer.add_summary(summary, self.batch)
+            self.batch_queue.add((name,self.batch))
+        self.writer.flush()
+
+tensorboard = TensorBoard(log_dir='/home/tensorflow/log/epoch')
+my_tensorboard = BatchTensorBoard(log_dir='/home/tensorflow/log/batch')
+
+'''
+（1）batchsize：批大小。在深度学习中，一般采用SGD训练，即每次训练在训练集中取batchsize个样本训练；
+（2）iteration：1个iteration等于使用batchsize个样本训练一次；
+（3）epoch：1个epoch等于使用训练集中的全部样本训练一次；
+'''
+
+model.fit(x_train_1, y_train_1,
+          epochs=20,#nb_epoch=20,
+          verbose=0,
+          batch_size=100,
+          callbacks=[tensorboard, my_tensorboard])

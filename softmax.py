@@ -68,6 +68,11 @@ model = Sequential()
 model.add(Dense(nb_classes, input_shape=(784,)))#全连接，输入784维度, 输出10维度，需要和输入输出对应
 model.add(Activation('softmax'))
 
+'''
+softmax一般作为神经网络最后一层，作为输出层进行多分类，
+Softmax的输出的每个值都是>=0，并且其总和为1，所以可以认为其为概率分布
+'''
+
 sgd = SGD(lr=0.005)
 #binary_crossentropy，就是交叉熵函数
 model.compile(loss='binary_crossentropy',
@@ -126,13 +131,18 @@ class BatchTensorBoard(TensorBoard):
         self.write_images = write_images
         self.batch = 0
         self.batch_queue = set()
+        self.epoch=0
     
     def on_epoch_end(self, epoch, logs=None):
-        pass #pass 不做任何事情，一般用做占位语句。
+        #pass #pass 不做任何事情，一般用做占位语句。
+        print '轮次:',self.epoch ;
+        self.epoch=self.epoch+1;
     
     def on_batch_end(self,batch,logs=None):
         logs = logs or {}
         
+        #print '批次:',self.batch ;
+
         self.batch = self.batch + 1
         
         for name, value in logs.items():
@@ -157,8 +167,55 @@ my_tensorboard = BatchTensorBoard(log_dir='/home/tensorflow/log/batch')
 （3）epoch：1个epoch等于使用训练集中的全部样本训练一次；
 '''
 
+#verbose：训练时显示实时信息，0表示不显示数据，1表示显示进度条，2表示用只显示一个数据
+#validation_split：0.2表示20%作为数据的验证集
+
 model.fit(x_train_1, y_train_1,
           epochs=20,#nb_epoch=20,
           verbose=0,
-          batch_size=100,
+          batch_size=500,
           callbacks=[tensorboard, my_tensorboard])
+
+'''
+损失函数
+
+损失函数（loss function），是指一种将一个事件（在一个样本空间中的一个元素）映射到一个表达与其事件相关的经济成本或机会成本的实数上的一种函数，在统计学中损失函数是一种衡量损失和错误（这种损失与“错误地”估计有关，如费用或者设备的损失）程度的函数。
+
+交叉熵（cross-entropy）就是神经网络中常用的损失函数。
+
+交叉熵性质：
+
+（1）非负性。
+
+（2）当真实输出a与期望输出y接近的时候，代价函数接近于0.(比如y=0，a～0；y=1，a~1时，代价函数都接近0)。
+
+一个比较简单的理解就是使得 预测值Yi和真实值Y' 对接近，即两者的乘积越大，coss-entropy越小。
+
+交叉熵和准确度变化图像可以看 TensorBoard 。
+-------------------------------------------
+梯度下降
+
+如果对于所有的权重和所有的偏置计算交叉熵的偏导数，就得到一个对于给定图像、标签和当前权重和偏置的「梯度」，如图所示：
+我们希望损失函数最小，也就是需要到达交叉熵最小的凹点的低部。在上图中，交叉熵被表示为一个具有两个权重的函数。
+
+而学习速率，即在梯度下降中的步伐大小。
+上面，我们探索了softmax对多分类的支持和理解，知道softmax可以作为一个输出成层进行多分类任务。
+
+但是，这种分类任务解决的都是线性因素形成的问题，对于非线性的，特别是异或问题，如何解决呢？
+
+这时，一种包含多层隐含层的深度神经网络的概念被提出。
+'''
+
+#optimizer（优化器），loss（目标函数或损失函数），metrics（评估模型的指标） 
+#模型的测试误差指标
+print(model.metrics_names)
+# 对测试数据进行测试
+print model.evaluate(x_test_1, y_test_1,
+          verbose=0,
+          batch_size=500);
+
+#['loss', 'acc']
+#[0.29414266981184484, 0.97938013374805455],损失函数值和精度值
+#x_test_1[1:10],取出10个元素,
+print model.predict_classes(x_test_1[1:10], batch_size=10, verbose=0);
+

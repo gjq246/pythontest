@@ -217,5 +217,6 @@ print model.evaluate(x_test_1, y_test_1,
 #['loss', 'acc']
 #[0.29414266981184484, 0.97938013374805455],损失函数值和精度值
 #x_test_1[1:10],取出10个元素,
+
 print model.predict_classes(x_test_1[1:10], batch_size=10, verbose=0);
 

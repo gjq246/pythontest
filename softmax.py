@@ -6,7 +6,7 @@ from keras.layers import Dense, Dropout, Activation, Reshape
 from keras.optimizers import SGD, Adam
 #from keras.utils.visualize_util import model_to_dot
 from keras.utils import np_utils
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import tensorflow as tf
 #import pandas as pd
 import numpy as np
@@ -170,11 +170,11 @@ my_tensorboard = BatchTensorBoard(log_dir='/home/tensorflow/log/batch')
 #verbose：训练时显示实时信息，0表示不显示数据，1表示显示进度条，2表示用只显示一个数据
 #validation_split：0.2表示20%作为数据的验证集
 
-model.fit(x_train_1, y_train_1,
-          epochs=20,#nb_epoch=20,
-          verbose=0,
-          batch_size=500,
-          callbacks=[tensorboard, my_tensorboard])
+#model.fit(x_train_1, y_train_1,
+#          epochs=20,#nb_epoch=20,
+#          verbose=0,
+#          batch_size=500,
+#          callbacks=[tensorboard, my_tensorboard])
 
 '''
 损失函数
@@ -208,15 +208,73 @@ model.fit(x_train_1, y_train_1,
 
 #optimizer（优化器），loss（目标函数或损失函数），metrics（评估模型的指标） 
 #模型的测试误差指标
-print(model.metrics_names)
+#print(model.metrics_names)
 # 对测试数据进行测试
-print model.evaluate(x_test_1, y_test_1,
-          verbose=0,
-          batch_size=500);
+#print model.evaluate(x_test_1, y_test_1,
+#          verbose=0,
+#          batch_size=500);
 
 #['loss', 'acc']
 #[0.29414266981184484, 0.97938013374805455],损失函数值和精度值
 #x_test_1[1:10],取出10个元素,
 
-print model.predict_classes(x_test_1[1:10], batch_size=10, verbose=0);
+#print model.predict_classes(x_test_1[1:10], batch_size=10, verbose=0);
 
+'''
+3. 激活函数
+
+激活函数（activation function）可以使得模型加入非线性因素的。
+
+解决非线性问题有两个办法：线性变换、引入非线性函数。
+
+（1）线性变换(linear transformation)
+
+原本一个线性不可分的模型如：X^2 + Y^2 = 1
+
+其图形如下图所示：
+
+'''
+
+fig = plt.figure(0)
+degree = np.random.rand(50)*np.pi*2
+x_1 = np.cos(degree)*np.random.rand(50)
+y_1 = np.sin(degree)*np.random.rand(50)#产生50个圆内点
+x_2 = np.cos(degree)*(1+np.random.rand(50))
+y_2 = np.sin(degree)*(1+np.random.rand(50))#产生50个圆外点
+
+# x_3 和 y_3 就是切分线
+t = np.linspace(0,np.pi*2,50)
+#在指定的间隔内返回均匀间隔的数字。
+#返回num均匀分布的样本，在[start, stop]。
+
+x_3 = np.cos(t)
+y_3 = np.sin(t)
+
+
+
+plt.scatter(x_1,y_1,c='red',s=50,alpha=0.4,marker='o')#圆内
+plt.scatter(x_2,y_2,c='black',s=50,alpha=0.4,marker='o')#圆外
+plt.plot(x_3,y_3)#圆
+
+
+
+'''
+将坐标轴进行高维变换，横坐标变成X^2，纵坐标变成 Y^2，这是表达式变为了 X + Y = 1，
+这样，原来的非线性问题，就变成了一个线性可分的问题，变成了一个简单的一元一次方程了。
+'''
+
+fig2 = plt.figure(1)
+#令新的横坐标变成x^2,纵坐标变成 Y^2
+x_4 = x_1**2
+y_4 = y_1**2
+x_5 = x_2**2
+y_5 = y_2**2
+
+# 这样就可以构建一个一元线性方程进行拟合
+x_6 = np.linspace(-1,2,50)
+y_6 = 1 - x_6
+
+plt.scatter(x_4,y_4,c='red',s=50,alpha=0.4,marker='o')
+plt.scatter(x_5,y_5,c='black',s=50,alpha=0.4,marker='o')
+plt.plot(x_6,y_6)
+plt.show()

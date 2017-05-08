@@ -8,7 +8,7 @@ from keras.optimizers import SGD, Adam
 from keras.utils import np_utils
 import matplotlib.pyplot as plt
 import tensorflow as tf
-#import pandas as pd
+import pandas as pd
 import numpy as np
 np.random.seed(0)
 #设置线程
@@ -278,3 +278,9 @@ plt.scatter(x_4,y_4,c='red',s=50,alpha=0.4,marker='o')
 plt.scatter(x_5,y_5,c='black',s=50,alpha=0.4,marker='o')
 plt.plot(x_6,y_6)
 plt.show()
+
+
+table = {'x':[1,0,1,0],'y':[1,0,0,1]}
+df = pd.DataFrame(table)
+df['z'] = df['x']^df['y']
+df

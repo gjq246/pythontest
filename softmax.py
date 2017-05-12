@@ -4,7 +4,7 @@ from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Reshape
 from keras.optimizers import SGD, Adam
-#from keras.utils.visualize_util import model_to_dot
+from keras.utils.vis_utils import model_to_dot
 from keras.utils import np_utils
 import matplotlib.pyplot as plt
 import tensorflow as tf

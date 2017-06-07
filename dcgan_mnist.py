@@ -8,7 +8,10 @@ Dependencies: tensorflow 1.0 and keras 2.0
 Usage: python3 dcgan_mnist.py
 '''
 
-import numpy as np
+import os  
+import cv2  
+import numpy as np 
+
 import time
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -22,6 +25,24 @@ from keras.layers import BatchNormalization
 from keras.optimizers import Adam, RMSprop
 
 import matplotlib.pyplot as plt
+
+def loadData(path,number):  
+    data =  np.empty((number,1,28,28),dtype="float32")   #empty与ones差不多原理，但是数值随机，类型随后面设定 
+    labels = np.empty((number,),dtype="uint8")   
+    listImg = os.listdir(path) 
+    count=0 
+    for img in listImg:  
+       imgData=cv2.imread(path+'/'+img, 0) #数据
+       l=int(img.split('-')[0]) #答案
+       arr = np.asarray(imgData,dtype="float32")  #将img数据转化为数组形式  
+       data[count,:,:,:] = arr   #将每个三维数组赋给data  
+       labels[count] = l   #取该图像的数值属性作为标签  
+       count=count+1
+       print path," loaded ",count
+       if count>=number:
+          break
+    return data, labels  
+
 
 class ElapsedTimer(object):
     def __init__(self):
@@ -137,6 +158,7 @@ class DCGAN(object):
         self.AM.add(self.discriminator())
         self.AM.compile(loss='binary_crossentropy', optimizer=optimizer,\
             metrics=['accuracy'])
+        print "888888"
         return self.AM
 
 class MNIST_DCGAN(object):
@@ -145,13 +167,19 @@ class MNIST_DCGAN(object):
         self.img_cols = 28
         self.channel = 1
 
-        (XX_train, YY_train),(X_test, Y_test) = mnist.load_data()
+        #(XX_train, YY_train),(X_test, Y_test) = mnist.load_data()
+        print "111111"
 
-        self.x_train = XX_train
-        #input_data.read_data_sets("mnist",\
+        trainData, trainLabels = loadData('./mnisttrain',1000)
+        self.x_train = trainData
+        #self.x_train = XX_train
+        #self.x_train = input_data.read_data_sets("mnist",\
         #	one_hot=True).train.images
+        print "222222"
         self.x_train = self.x_train.reshape(-1, self.img_rows,\
         	self.img_cols, 1).astype(np.float32)
+        print "333333"
+
 
         self.DCGAN = DCGAN()
         self.discriminator =  self.DCGAN.discriminator_model()
@@ -160,21 +188,28 @@ class MNIST_DCGAN(object):
 
     def train(self, train_steps=2000, batch_size=256, save_interval=0):
         noise_input = None
+        print "444444"
         if save_interval>0:
             noise_input = np.random.uniform(-1.0, 1.0, size=[16, 100])
         for i in range(train_steps):
+            print "555555"
             images_train = self.x_train[np.random.randint(0,
                 self.x_train.shape[0], size=batch_size), :, :, :]
             noise = np.random.uniform(-1.0, 1.0, size=[batch_size, 100])
             images_fake = self.generator.predict(noise)
+            print "666666"
             x = np.concatenate((images_train, images_fake))
             y = np.ones([2*batch_size, 1])
             y[batch_size:, :] = 0
             d_loss = self.discriminator.train_on_batch(x, y)
+            print "777777"
+            print d_loss
 
             y = np.ones([batch_size, 1])
             noise = np.random.uniform(-1.0, 1.0, size=[batch_size, 100])
             a_loss = self.adversarial.train_on_batch(noise, y)
+            print "999999"
+            print a_loss
             log_mesg = "%d: [D loss: %f, acc: %f]" % (i, d_loss[0], d_loss[1])
             log_mesg = "%s  [A loss: %f, acc: %f]" % (log_mesg, a_loss[0], a_loss[1])
             print(log_mesg)
@@ -212,7 +247,8 @@ class MNIST_DCGAN(object):
 if __name__ == '__main__':
     mnist_dcgan = MNIST_DCGAN()
     timer = ElapsedTimer()
-    mnist_dcgan.train(train_steps=10, batch_size=256, save_interval=500)
+    mnist_dcgan.train(train_steps=1, batch_size=256, save_interval=500)
+    #mnist_dcgan.train(train_steps=10000, batch_size=256, save_interval=500)
     timer.elapsed_time()
     mnist_dcgan.plot_images(fake=True)
     mnist_dcgan.plot_images(fake=False, save2file=True)

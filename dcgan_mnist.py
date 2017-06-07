@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 
 '''
+内存2G以上才能运行
 DCGAN on MNIST using Keras
 Author: Rowel Atienza
 Project: https://github.com/roatienza/Deep-Learning-Experiments
@@ -247,7 +248,7 @@ class MNIST_DCGAN(object):
 if __name__ == '__main__':
     mnist_dcgan = MNIST_DCGAN()
     timer = ElapsedTimer()
-    mnist_dcgan.train(train_steps=1, batch_size=256, save_interval=500)
+    mnist_dcgan.train(train_steps=100, batch_size=256, save_interval=500)
     #mnist_dcgan.train(train_steps=10000, batch_size=256, save_interval=500)
     timer.elapsed_time()
     mnist_dcgan.plot_images(fake=True)
